@@ -1,0 +1,6 @@
+.idea
+.DS_Store
+.env
+vendor
+public
+composer.lock
