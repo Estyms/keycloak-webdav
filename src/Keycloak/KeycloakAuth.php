@@ -12,7 +12,7 @@ class KeycloakAuth extends AbstractBasic
     private $client_secret;
     private $keycloakTokenUrl;
 
-    public function __construct(AclPlugin $plugin, $client_id, $client_secret, $keycloakTokenUrl)
+    public function __construct(AclPlugin $plugin, string $client_id, string $client_secret, string $keycloakTokenUrl)
     {
         $this->aclPlugin = $plugin;
         $this->client_id = $client_id;
@@ -20,7 +20,7 @@ class KeycloakAuth extends AbstractBasic
         $this->keycloakTokenUrl = $keycloakTokenUrl;
     }
 
-    protected function validateUserPass($username, $password)
+    protected function validateUserPass($username, $password) : bool
     {
         $curl = curl_init();
 

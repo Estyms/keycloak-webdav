@@ -2,9 +2,14 @@
 
 use Collections\HomeCollection;
 use Sabre\DAV;
+use Dotenv\Dotenv;
 
 // The autoloader
 require 'vendor/autoload.php';
+
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 
 $aclPlugin = new \Sabre\DAVACL\Plugin();
 
