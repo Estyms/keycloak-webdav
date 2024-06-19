@@ -1,20 +1,18 @@
 {
-  "name": "jlucki/docker-php-dev-env",
-  "description": "A simple web development environment using Docker with NGINX, PHP, MySQL and Xdebug.",
+  "name": "estym/keycloak-webdav",
+  "description": "A simple webdav server with a Keycloak integration",
   "type": "project",
   "keywords": [
     "docker",
-    "development",
-    "environment",
+    "webdav",
     "php",
-    "xdebug",
-    "nginx"
+    "phpredis"
   ],
   "license": "MIT",
   "authors": [
     {
-      "name": "Jan Lucki",
-      "email": "jan@lucki.dev"
+      "name": "Evann (Estym) Regnault",
+      "email": "contact@regnault.dev"
     }
   ],
   "require": {

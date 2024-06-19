@@ -1,0 +1,15 @@
+services:
+  webdav:
+    build: .
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    environment:
+      - redis_host=redis
+      - data_path=/data/
+    volumes:
+      - ./public:/data
+  
+  redis:
+    image: redis:7.0.15-alpine

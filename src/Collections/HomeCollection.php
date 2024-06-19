@@ -9,26 +9,26 @@ use Sabre\DAV\FS\Directory;
 class HomeCollection extends Collection
 {
     private $plugin;
-    private $userPath;
+    private $dataPath;
 
 
-    public function __construct(AuthPlugin $authPlugin, string $userPath)
+    public function __construct(AuthPlugin $authPlugin, string $dataPath)
     {
         $this->plugin = $authPlugin;
-        $this->userPath = $userPath;
+        $this->dataPath = $dataPath;
     }
 
     public function getChildren(): array
     {
         $principal = $this->plugin->getCurrentPrincipal();
         $username = explode("/", $principal)[1];
-        $path = $this->userPath;
+        $path = $this->dataPath;
 
-        if (!is_dir($path.$username)) {
-            mkdir($path.$username, 0777 , true);
+        if (!is_dir($path . '/users/' . $username)) {
+            mkdir($path . '/users/' . $username, 0777 , true);
         }
 
-        return [new Directory($path.$username, $username)];
+        return [new Directory($path . '/users/' . $username, $username)];
     }
 
     public function getName(): string

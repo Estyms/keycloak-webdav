@@ -9,9 +9,10 @@ use Dotenv\Dotenv;
 // The autoloader
 require 'vendor/autoload.php';
 
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
+if (is_file(".env")){
+    $dotenv = Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
 
 $redis_client = new Redis();
 $redis_client->connect($_ENV['redis_host'], intval($_ENV['redis_port']));
@@ -23,7 +24,7 @@ $authBackend = new Keycloak\KeycloakAuth($redis_client, $principalBackend,$_ENV[
 $authBackend->setRealm($_ENV['realm']);
 $authPlugin = new DAV\Auth\Plugin($authBackend);
 
-$path = $_ENV['users_path'];
+$path = $_ENV['data_path'];
 
 // The server object is responsible for making sense out of the WebDAV protocol
 $server = new DAV\Server([new HomeCollection($authPlugin, $path), new RolesCollection($principalBackend, $path)]);

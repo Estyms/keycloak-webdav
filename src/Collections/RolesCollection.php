@@ -9,22 +9,22 @@ use Sabre\DAV\FSExt\Directory as SabreDirectory;
 class RolesCollection extends Collection {
     
     private RolesBackend $principalBackend;
-    private $dataRoot;
+    private string $dataPath;
 
-    public function __construct(RolesBackend $principal_backend, string $dataRoot)
+    public function __construct(RolesBackend $principal_backend, string $dataPath)
     {
-        $this->$dataRoot = $dataRoot; 
+        $this->dataPath = $dataPath; 
         $this->principalBackend = $principal_backend;
     }
 
     public function getChildren() : array { 
-        $path = $this->dataRoot;
+        $path = $this->dataPath;
         $dirs = [];
         foreach ($this->principalBackend->roles as $role) { 
-            if (!is_dir($path . 'public/' . $role)){
-                mkdir($path . 'public/' . $role, 0777, true);
+            if (!is_dir($path . '/groups/' . $role)){
+                mkdir($path . '/groups/' . $role, 0777, true);
             }
-            $dirs[] = new SabreDirectory($path . 'public/' . $role, $role);
+            $dirs[] = new SabreDirectory($path . '/groups/' . $role, $role);
         }
 
         return $dirs;
