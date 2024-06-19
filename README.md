@@ -6,9 +6,11 @@ This project is meant to be a WebDav Server using Keycloak roles for it's [Princ
 ## Requirements
  
 - PHP
+- [phpredis](https://github.com/phpredis/phpredis)
 - Composer
 - A running keycloak instance
 - A Client with `Direct access grants` enabled
+- A running Redis Instance
 
 ## Configuration
 

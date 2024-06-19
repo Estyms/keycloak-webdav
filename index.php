@@ -12,10 +12,14 @@ require 'vendor/autoload.php';
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
+
+$redis_client = new Redis();
+$redis_client->connect($_ENV['redis_host'], intval($_ENV['redis_port']));
+
 $principalBackend = new RolesBackend();
 
 // Set Auth
-$authBackend = new Keycloak\KeycloakAuth($principalBackend,$_ENV['client_id'], $_ENV['client_secret'], $_ENV['keycloak_token_url'] );
+$authBackend = new Keycloak\KeycloakAuth($redis_client, $principalBackend,$_ENV['client_id'], $_ENV['client_secret'], $_ENV['keycloak_token_url'] );
 $authBackend->setRealm($_ENV['realm']);
 $authPlugin = new DAV\Auth\Plugin($authBackend);
 

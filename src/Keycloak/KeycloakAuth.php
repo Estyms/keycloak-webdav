@@ -3,27 +3,49 @@
 namespace Keycloak;
 
 use Principal\RolesBackend;
+use Redis;
 use Sabre\DAV\Auth\Backend\AbstractBasic;
 
 class KeycloakAuth extends AbstractBasic
 {
 
+    private Redis $redis_client;
     private RolesBackend $principal_backend;
     private string $client_id;
     private string $client_secret;
     private string $keycloakTokenUrl;
 
-    public function __construct(RolesBackend $principal_backend, string $client_id, 
+    public function __construct(Redis $redis_client, RolesBackend $principal_backend, string $client_id, 
 	string $client_secret, string $keycloakTokenUrl)
     {
+        $this->redis_client = $redis_client;
         $this->principal_backend = $principal_backend;
         $this->client_id = $client_id;
         $this->client_secret = $client_secret;
         $this->keycloakTokenUrl = $keycloakTokenUrl;
     }
 
+    private function addReditCache(string $username, string $hash, array $roles): void {
+        $this->redis_client->set("credentials".$username.$hash, json_encode($roles), ["EX" => 60 * 15]);
+    } 
+
+    private function checkReditCache(string $username, string $hash): array {
+        if (!$this->redis_client->exists("credentials" . $username . $hash)) return ["valid" => false];
+    
+        $datastr = $this->redis_client->get("credentials" . $username . $hash);
+        $roles = json_decode($datastr);
+        return ["valid" => true, "roles" => $roles];
+    } 
+
     protected function validateUserPass($username, $password) : bool
     {
+        $hash = hash("sha256", $password);
+        $inCache = $this->checkReditCache($username, $hash);
+        if ($inCache["valid"]) {
+            $this->principal_backend->setPrincipals($inCache["roles"]);
+            return true;
+        }
+
         $curl = curl_init();
 
         curl_setopt_array($curl, [
@@ -52,6 +74,8 @@ class KeycloakAuth extends AbstractBasic
         if ($err || $data['http_code'] != 200) {
             return false;
         } else {
+            $this->addReditCache($username, $hash, []);
+
 	        $x = json_decode($body);
 	        $user_data = json_decode(base64_decode(explode(".",$x->access_token)[1]), true);
             
@@ -65,6 +89,8 @@ class KeycloakAuth extends AbstractBasic
             if (is_null($client_data)) return true;
 
             $this->principal_backend->setPrincipals($roles);
+
+            $this->addReditCache($username, $hash, $roles);
 
             return true;
         }
