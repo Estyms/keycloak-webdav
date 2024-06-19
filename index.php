@@ -44,7 +44,11 @@ $principalPlugin = new Sabre\DAVACL\Plugin($principalBackend);
 $server->addPlugin($authPlugin);
 $server->addPlugin($principalPlugin);
 $server->addPlugin(new DAV\Browser\Plugin());
+$server->addPlugin(new DAV\PartialUpdate\Plugin());
 
+$server->addPlugin(
+    new DAV\Sync\Plugin()
+);
 
 // All we need to do now, is to fire up the server
 $server->start();
