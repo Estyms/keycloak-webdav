@@ -2,19 +2,21 @@
 
 namespace Keycloak;
 
+use Principal\RolesBackend;
 use Sabre\DAV\Auth\Backend\AbstractBasic;
-use Sabre\DAVACL\Plugin as AclPlugin;
 
 class KeycloakAuth extends AbstractBasic
 {
-    private $aclPlugin;
-    private $client_id;
-    private $client_secret;
-    private $keycloakTokenUrl;
 
-    public function __construct(AclPlugin $plugin, string $client_id, string $client_secret, string $keycloakTokenUrl)
+    private RolesBackend $principal_backend;
+    private string $client_id;
+    private string $client_secret;
+    private string $keycloakTokenUrl;
+
+    public function __construct(RolesBackend $principal_backend, string $client_id, 
+	string $client_secret, string $keycloakTokenUrl)
     {
-        $this->aclPlugin = $plugin;
+        $this->principal_backend = $principal_backend;
         $this->client_id = $client_id;
         $this->client_secret = $client_secret;
         $this->keycloakTokenUrl = $keycloakTokenUrl;
@@ -26,7 +28,7 @@ class KeycloakAuth extends AbstractBasic
 
         curl_setopt_array($curl, [
             CURLOPT_URL => $this->keycloakTokenUrl,
-            CURLOPT_RETURNTRANSFER => true,
+	    CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 30,
@@ -38,17 +40,32 @@ class KeycloakAuth extends AbstractBasic
             ],
         ]);
 
-        curl_exec($curl);
+        $body = curl_exec($curl);
 
         $err = curl_error($curl);
 
         $data = curl_getinfo($curl);
+
 
         curl_close($curl);
 
         if ($err || $data['http_code'] != 200) {
             return false;
         } else {
+	        $x = json_decode($body);
+	        $user_data = json_decode(base64_decode(explode(".",$x->access_token)[1]), true);
+            
+            $resource_data = $user_data["resource_access"];
+            if (is_null($resource_data) || !array_key_exists($this->client_id, $resource_data)) return true;
+
+            $client_data = $resource_data[$this->client_id];
+            if (is_null($client_data)) return true;
+
+            $roles = $client_data["roles"];
+            if (is_null($client_data)) return true;
+
+            $this->principal_backend->setPrincipals($roles);
+
             return true;
         }
 

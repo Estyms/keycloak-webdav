@@ -12,13 +12,13 @@ class HomeCollection extends Collection
     private $userPath;
 
 
-    public function __construct(AuthPlugin $authPlugin, $userPath)
+    public function __construct(AuthPlugin $authPlugin, string $userPath)
     {
         $this->plugin = $authPlugin;
         $this->userPath = $userPath;
     }
 
-    public function getChildren()
+    public function getChildren(): array
     {
         $principal = $this->plugin->getCurrentPrincipal();
         $username = explode("/", $principal)[1];
@@ -31,7 +31,7 @@ class HomeCollection extends Collection
         return [new Directory($path.$username, $username)];
     }
 
-    public function getName()
+    public function getName(): string
     {
         return "Home";
     }

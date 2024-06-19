@@ -4,17 +4,21 @@ namespace Principal;
 
 use Sabre\DAVACL\PrincipalBackend\AbstractBackend;
 
-class CustomBackend extends AbstractBackend
+class RolesBackend extends AbstractBackend
 {
+    public array $roles = [];
+    public array $principals = [];
 
     public function getPrincipalsByPrefix($prefixPath)
     {
-        // TODO: Implement getPrincipalsByPrefix() method.
+       return array_filter(array: $this->principals, callback: function($k) use($prefixPath) {
+           return str_starts_with($prefixPath, $k);
+       }); 
     }
 
     public function getPrincipalByPath($path)
     {
-        // TODO: Implement getPrincipalByPath() method.
+        return $path;
     }
 
     public function updatePrincipal($path, \Sabre\DAV\PropPatch $propPatch)
@@ -34,11 +38,21 @@ class CustomBackend extends AbstractBackend
 
     public function getGroupMembership($principal)
     {
-        // TODO: Implement getGroupMembership() method.
+	if (!str_contains("groups")) {
+		return $this->principals;
+	}
+	else return [$principal];
     }
 
     public function setGroupMemberSet($principal, array $members)
     {
         // TODO: Implement setGroupMemberSet() method.
+    }
+
+    public function setPrincipals(array $roles) {
+        $this->roles = $roles;
+        $this->principals = array_map(array: $roles, callback:  function($r) {
+            return "/principals/groups/" . $r;
+        });
     }
 }

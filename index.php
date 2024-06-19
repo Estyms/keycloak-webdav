@@ -1,6 +1,8 @@
 <?php
 
 use Collections\HomeCollection;
+use Collections\RolesCollection;
+use Principal\RolesBackend;
 use Sabre\DAV;
 use Dotenv\Dotenv;
 
@@ -10,18 +12,17 @@ require 'vendor/autoload.php';
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-
-$aclPlugin = new \Sabre\DAVACL\Plugin();
-
+$principalBackend = new RolesBackend();
 
 // Set Auth
-$authBackend = new Keycloak\KeycloakAuth($aclPlugin,$_ENV['client_id'], $_ENV['client_secret'], $_ENV['keycloak_token_url'] );
+$authBackend = new Keycloak\KeycloakAuth($principalBackend,$_ENV['client_id'], $_ENV['client_secret'], $_ENV['keycloak_token_url'] );
 $authBackend->setRealm($_ENV['realm']);
 $authPlugin = new DAV\Auth\Plugin($authBackend);
 
+$path = $_ENV['users_path'];
 
 // The server object is responsible for making sense out of the WebDAV protocol
-$server = new DAV\Server([new HomeCollection($authPlugin, $_ENV['users_path'])]);
+$server = new DAV\Server([new HomeCollection($authPlugin, $path), new RolesCollection($principalBackend, $path)]);
 
 // If your server is not on your webroot, make sure the following line has the
 // correct information
@@ -34,12 +35,12 @@ $lockPlugin = new DAV\Locks\Plugin($lockBackend);
 $server->addPlugin($lockPlugin);
 
 
+$principalPlugin = new Sabre\DAVACL\Plugin($principalBackend);
 
-// This ensures that we get a pretty index in the browser, but it is
-// optional.
-$server->addPlugin(new DAV\Browser\Plugin());
 $server->addPlugin($authPlugin);
-$server->addPlugin($aclPlugin);
+$server->addPlugin($principalPlugin);
+$server->addPlugin(new DAV\Browser\Plugin());
+
 
 // All we need to do now, is to fire up the server
 $server->start();
